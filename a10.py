@@ -123,6 +123,14 @@ def get_population(name: str) -> str:
     match = get_match(infobox_text, pattern, error_text)
     return match.group("pop")
 
+def get_area(name: str) -> str:
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(name)))
+    pattern = r"Area.*?(?P<area>[\d,]+\.?\d*)\s*km"
+    error_text = "Page infobox has no area information"
+    match = get_match(infobox_text, pattern, error_text)
+
+    return match.group("area")
+
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
 # list of the answer(s) and not just the answer itself.
@@ -154,6 +162,8 @@ def polar_radius(matches: List[str]) -> List[str]:
 def population(matches: List[str]) -> List[str]:
     return [get_population(" ".join(matches))]
 
+def area(matches: List[str]) -> List[str]:
+    return [get_area(" ".join(matches))]
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
     raise KeyboardInterrupt
@@ -171,6 +181,8 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("what is the polar radius of %".split(), polar_radius),
     ("what is the population of %".split(), population),
     ("population of %".split(), population),
+    ("what is the area of %".split(), area),
+    ("area of %".split(), area),
     (["bye"], bye_action),
 ]
 
