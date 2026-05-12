@@ -129,7 +129,18 @@ def get_area(name: str) -> str:
     error_text = "Page infobox has no area information"
     match = get_match(infobox_text, pattern, error_text)
 
-    return match.group("area")
+    return match.group("area") + " km²"
+
+def get_gdp(name: str) -> str:
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(name)))
+    
+    
+    pattern = r"nominal[^$]*?(?P<gdp>\$[\d,.]+\s*(?:trillion|billion|million))"
+
+    error_text = "Could not find a specific GDP total"
+    
+    match = get_match(infobox_text, pattern, error_text)
+    return match.group("gdp").strip()
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
 # according to the action and the argument. It is important that each function returns a
@@ -164,6 +175,15 @@ def population(matches: List[str]) -> List[str]:
 
 def area(matches: List[str]) -> List[str]:
     return [get_area(" ".join(matches))]
+def gdp_action(matches: List[str]) -> List[str]:
+    try:
+        name = " ".join(matches).title()
+        if name.lower() == "usa" or name.lower() == "united states":
+            name = "United States"
+            
+        return [get_gdp(name)]
+    except (LookupError, AttributeError):
+        return ["I couldn't find the GDP for that location."]
 # dummy argument is ignored and doesn't matter
 def bye_action(dummy: List[str]) -> None:
     raise KeyboardInterrupt
@@ -179,10 +199,15 @@ Action = Callable[[List[str]], List[Any]]
 pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
+    
     ("what is the population of %".split(), population),
     ("population of %".split(), population),
+   
     ("what is the area of %".split(), area),
     ("area of %".split(), area),
+    
+    ("what is the gdp of %".split(), gdp_action),
+    ("gdp of %".split(), gdp_action),
     (["bye"], bye_action),
 ]
 
